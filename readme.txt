@@ -1,5 +1,5 @@
 # Info 
-libfontconfig was built from source with --enable-static --with-glib=no
+libfontconfig was built from source using: --enable-static --enable-iconv
 hacked the configure script of libfontconfig a bit to avoid mkstemp
 Other libs were taken from msys2 repository
 
