@@ -4,36 +4,28 @@
 _realname=cairo
 pkgbase=mingw-w64-${_realname}
 pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
-pkgver=1.15.10
-pkgrel=1
+pkgver=1.16.0
+pkgrel=9100
 pkgdesc="Cairo vector graphics library (mingw-w64)"
 arch=('any')
 url="https://cairographics.org/"
 license=(LGPL2.1 MPL1.1)
 makedepends=("${MINGW_PACKAGE_PREFIX}-gcc"
-             "${MINGW_PACKAGE_PREFIX}-ghostscript"
-             "${MINGW_PACKAGE_PREFIX}-glib2"
-             "${MINGW_PACKAGE_PREFIX}-gtk2"
-             "${MINGW_PACKAGE_PREFIX}-librsvg"
-             "${MINGW_PACKAGE_PREFIX}-libspectre"
-             "${MINGW_PACKAGE_PREFIX}-pkg-config"
-             "${MINGW_PACKAGE_PREFIX}-poppler"
-            )
-depends=("${MINGW_PACKAGE_PREFIX}-gcc-libs"
-         "${MINGW_PACKAGE_PREFIX}-freetype"
+             "${MINGW_PACKAGE_PREFIX}-pkg-config")
+depends=("${MINGW_PACKAGE_PREFIX}-freetype"
          "${MINGW_PACKAGE_PREFIX}-fontconfig"
          "${MINGW_PACKAGE_PREFIX}-lzo2"
          "${MINGW_PACKAGE_PREFIX}-pixman"
-         "${MINGW_PACKAGE_PREFIX}-zlib"
-        )
-optdepends=("${MINGW_PACKAGE_PREFIX}-glib2: libcairo-gobject")
-options=('strip' 'staticlibs')
-source=(#"https://cairographics.org/releases/cairo-${pkgver}.tar.xz"
-        https://cairographics.org/snapshots/cairo-${pkgver}.tar.xz
+         "${MINGW_PACKAGE_PREFIX}-zlib")
+
+groups=("rtools-${_realname}")
+
+source=("https://cairographics.org/releases/cairo-${pkgver}.tar.xz"
+        #"https://cairographics.org/snapshots/cairo-${pkgver}.tar.xz"
         0009-standalone-headers.mingw.patch
         0026-create-argb-fonts.all.patch
         0027-win32-print-fix-unbounded-surface-assertion.patch)
-sha256sums=('62ca226134cf2f1fd114bea06f8b374eb37f35d8e22487eaa54d5e9428958392'
+sha256sums=('5e7b29b3f113ef870d1e3ecf8adf21f923396401604bda16d44be45e66052331'
             '234de8c5d4c28b03c19e638a353e8defb2de0367a634c002b0ea7d2877bd0756'
             '6db6c44fbdb4926d09afa978fe80430186c4b7b7d255059602b1f94c6a079975'
             '7e244c20eec8c7b287dbee1d34de178d9b0c419dc4c2b11c90eaf626c92bf781')
@@ -44,10 +36,16 @@ prepare() {
   patch -p1 -i ${srcdir}/0026-create-argb-fonts.all.patch
   patch -p1 -i ${srcdir}/0027-win32-print-fix-unbounded-surface-assertion.patch
 
-  autoreconf -fi
+  NOCONFIGURE=1 ./autogen.sh
 }
 
 build() {
+  # Build with old toolchain:
+  export PKG_CONFIG="pkg-config --static"
+  export CC="/C/Rtools${MINGW_PREFIX/mingw/mingw_}/bin/gcc"
+  export CXX="/C/Rtools${MINGW_PREFIX/mingw/mingw_}/bin/g++"
+  export CPPFLAGS="-I${MINGW_PREFIX}/include"
+  
   # export lt_cv_deplibs_check_method='pass_all'
   rm -rf build-${MINGW_CHOST}
   mkdir -p build-${MINGW_CHOST}
@@ -66,10 +64,10 @@ build() {
     --disable-tee \
     --disable-xlib \
     --disable-xcb \
-    --enable-fc \
+    --disable-fc \
     --enable-ft \
     --disable-silent-rules \
-    ac_cv_prog_GS=${MINGW_PREFIX}/bin/gsc
+    --disable-gtk-doc-html
 
   make #-j1 V=1
 }
